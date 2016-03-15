@@ -28,11 +28,16 @@ exports = module.exports = function(io){
 			console.log("wordcloud");
 			db.querySentimentalText(data.time, data.airlinecode)
             .then(function(results){
-            	var list_result = freq(results[0].texts);
-            	console.log("list result:");
-            	console.dir(list_result);
-            	var result = removeStopword(list_result,20);
-                socket.emit('list', list_result.join());
+            	var return_data=[];
+            	for(var i=0;i<3;i++){
+	            	var list_result = freq(results[i].texts);
+	            	console.log("list result:");
+	            	console.dir(list_result);
+	            	result = removeStopword(list_result,20);
+	            	return_data.push(result.join("*"));	
+            	}
+            	
+                socket.emit('list', return_data.join(" + "));
             })
 		});
 	});
@@ -40,13 +45,15 @@ exports = module.exports = function(io){
 	function removeStopword(jsonArray, capacity){
 		var result_array = [];
 	    jsonArray.forEach(function(json){
-	    	if(bst.search(json.word)&&result_array.length<capacity){
+	    	if(json.count==1) return result_array;
+	    	if(bst.search(json.word).length==0){
+
 	    		result_array.push([json.word,json.count]);
 	    	}
-	    	return (result_array.length>capacity) 
+	    	if(result_array.length>20) return result_array;
+	    	
 	    	
 	    });
-	    console.log(result_array.toString());
 	    return result_array;
 	}
 	
